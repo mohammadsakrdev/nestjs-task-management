@@ -23,8 +23,6 @@ export class TasksController {
 
   @Get()
   getTasks(@Query(ValidationPipe) filterDto: GetTasksFilterDto): Task[] {
-    // tslint:disable-next-line: no-console
-    console.log(filterDto);
     if (Object.keys(filterDto).length) {
       return this.tasksService.getTasksWithFilters(filterDto);
     } else {
