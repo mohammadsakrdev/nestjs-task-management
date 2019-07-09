@@ -6,18 +6,19 @@ import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
 import { TaskRepository } from './task.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Task } from './task.entity';
+import { User } from '../auth/user.entity';
 
 @Injectable()
 export class TasksService {
 
   constructor(@InjectRepository(TaskRepository) private taskRepository: TaskRepository) { }
 
-  async getTasks(filterDto: GetTasksFilterDto): Promise<Task[]> {
-    return this.taskRepository.getTasks(filterDto);
+  async getTasks(filterDto: GetTasksFilterDto, user: User): Promise<Task[]> {
+    return this.taskRepository.getTasks(filterDto, user);
   }
 
-  async getTaskById(id: number): Promise<Task> {
-    const found = await this.taskRepository.findOne(id);
+  async getTaskById(id: number, user: User): Promise<Task> {
+    const found = await this.taskRepository.findOne({ id, user });
     if (!found) {
       throw new NotFoundException(`Task with Id ${id} is not found`);
     }
@@ -39,20 +40,20 @@ export class TasksService {
   //   return tasks;
   // }
 
-  async createTask(creatTaskDto: CreateTaskDto): Promise<Task> {
-    return this.taskRepository.createTask(creatTaskDto);
+  async createTask(creatTaskDto: CreateTaskDto, user: User): Promise<Task> {
+    return this.taskRepository.createTask(creatTaskDto, user);
   }
 
-  async deleteTask(id: number): Promise<void> {
-    const result = await this.taskRepository.delete(id);
+  async deleteTask(id: number, user: User): Promise<void> {
+    const result = await this.taskRepository.delete({ id, user });
     if (result.affected === 0) {
       throw new NotFoundException(`Task with Id ${id} is not found`);
     }
   }
 
-  // updateTaskStatus(id: string, status: TaskStatus): Task {
-  //   const task = this.getTaskById(id);
-  //   task.status = status;
-  //   return task;
-  // }
+  async updateTaskStatus(id: number, status: TaskStatus, user: User): Promise<Task> {
+    const task = await this.getTaskById(id, user);
+    task.status = status;
+    return task;
+  }
 }
